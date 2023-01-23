@@ -38,6 +38,58 @@ tokenized_datasets = dataset.map(tokenize_function, batched=True)
 model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
 
 # trian model
+# Setting training arguments
+training_args = TrainingArguments(
+    "test-squad",
+    evaluation_strategy = "epoch",
+    learning_rate=2e-5,
+    weight_decay=0.01,
+    num_train_epochs=1,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
+    warmup_steps=500,
+    save_steps=1000,
+    save_total_limit=2,
+
+)
+
+# Setting trainer
+trainer = Trainer(
+    model,
+    training_args,
+    train_dataset=tokenized_datasets["train"],
+    eval_dataset=tokenized_datasets["validation"],
+)
+                                    
+# Training model
+trainer.train()
+
+# Saving model
+trainer.save_model("distilbert-base-uncased")
+
+# Loading model
+model = AutoModelForQuestionAnswering.from_pretrained("distilbert-base-uncased")
+
+# Query model
+def query(question, context):
+    encoding = tokenizer.encode_plus(question, context)
+    input_ids, attention_mask = encoding["input_ids"], encoding["attention_mask"]
+    start_scores, end_scores = model(torch.tensor([input_ids]), attention_mask=torch.tensor([attention_mask]))
+    all_tokens = tokenizer.convert_ids_to_tokens(input_ids)
+    answer = ' '.join(all_tokens[torch.argmax(start_scores) : torch.argmax(end_scores)+1])
+    return answer
+
+# Testing model
+question = "What is the name of the repository ?"
+context = "Hugging Face is a French company based in New York and Paris. Its goal is to democratize NLP. Its main product is the library transformers that provides state-of-the-art pre-trained models for Natural Language Processing."
+print(query(question, context))
+
+# Output
+# ['Hugging', 'Face', 'is', 'a', 'French', 'company', 'based', 'in', 'New', 'York', 'and', 'Paris', '.', 'Its', 'goal', 'is', 'to', 'democratize', 'NLP', '.', 'Its', 'main', 'product', 'is', 'the', 'library', 'transformers', 'that', 'provides', 'state', '-', 'of', '-', 'the', '-', 'art', 'pre', '-', 'trained', 'models', 'for', 'Natural', 'Language', 'Processing', '.']
+
+
+
+
 
 
 
