@@ -68,10 +68,10 @@ trainer.train()
 trainer.save_model()
 
 # Loading model
-model = AutoModelForSeq2SeqLM.from_pretrained("test-t5")
+model = AutoModelForSeq2SeqLM.from_pretrained("distilbert-base-uncased")
 
 # Loading tokenizer
-tokenizer = AutoTokenizer.from_pretrained("t5-small")
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
 
 # Setting function to generate answer
 def generate_answer(question, context):
